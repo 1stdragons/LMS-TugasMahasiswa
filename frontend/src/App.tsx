@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from "react";
 import {
   UploadCloud,
@@ -320,6 +319,8 @@ export default function App() {
   const filteredMahasiswa = mahasiswaMock.filter((m) => m.nama.toLowerCase().includes(searchMahasiswa.toLowerCase()) || m.nim.includes(searchMahasiswa));
 
   const [lastAction, setLastAction] = useState("Siap");
+  const totalBerhasil = mahasiswaMock.filter(m=>m.status==='berhasil').length;
+  const avgScore = (mahasiswaMock.filter(m=>m.skor>0).reduce((a,b)=>a+b.skor,0)/mahasiswaMock.filter(m=>m.skor>0).length || 0).toFixed(1);
 
   return (
     <div className="min-h-screen bg-[#08080d] text-zinc-100 selection:bg-violet-500/30 selection:text-white">
@@ -520,25 +521,34 @@ export default function App() {
                   <p className="mt-1 text-[12px] text-zinc-500">Unggah file untuk melihat hasil analisis otomatis di sini.</p>
                 </div>
               ) : (
-                <div className="rounded-[16px] border border-zinc-800 bg-[#15151f] p-5">
-                  <p className="text-[11px] uppercase tracking-widest text-zinc-500">Skor Akhir</p>
-                  <div className="mt-1 flex items-baseline gap-2">
-                    <span className="text-[40px] font-bold leading-none tracking-tight">{analysisResult.score.toFixed(1)}</span>
-                    <span className="text-[16px] text-zinc-500">/ 10.0</span>
-                  </div>
-                  <div className="mt-4 space-y-2">
-                    {[
-                      { ok: analysisResult.checks.hasRange, label: 'Komponen <input type="range"> ditemukan' },
-                      { ok: analysisResult.checks.hasOnChange, label: "Event listener onchange/oninput" },
-                      { ok: analysisResult.checks.hasEnak, label: 'Label "Enak Banget" saat 9.5' },
-                    ].map((c, i) => (
-                      <div key={i} className="flex items-center gap-2 text-[12px]">
-                        <div className={`flex h-5 w-5 items-center justify-center rounded-full ${c.ok ? "bg-emerald-600/20 text-emerald-400" : "bg-red-600/20 text-red-400"}`}>
-                          {c.ok ? <CheckCircle2 className="h-3.5 w-3.5" /> : <XCircle className="h-3.5 w-3.5" />}
+                <div className="space-y-4">
+                  <div className="rounded-[16px] border border-zinc-800 bg-[#15151f] p-5">
+                    <p className="text-[11px] uppercase tracking-widest text-zinc-500">Skor Akhir</p>
+                    <div className="mt-1 flex items-baseline gap-2">
+                      <span className="text-[40px] font-bold leading-none tracking-tight">{analysisResult.score.toFixed(1)}</span>
+                      <span className="text-[16px] text-zinc-500">/ 10.0</span>
+                      <span className={`ml-3 rounded-full px-2.5 py-0.5 text-[11px] font-bold ${analysisResult.success ? "bg-emerald-500/20 text-emerald-300" : "bg-red-500/20 text-red-300"}`}>{analysisResult.success ? "LULUS" : "TIDAK LULUS"}</span>
+                    </div>
+                    <div className="mt-4 space-y-2">
+                      {[
+                        { ok: analysisResult.checks.hasRange, label: 'Komponen <input type="range"> ditemukan' },
+                        { ok: analysisResult.checks.hasOnChange, label: "Event listener onchange/oninput" },
+                        { ok: analysisResult.checks.hasEnak, label: 'Label "Enak Banget" saat 9.5' },
+                      ].map((c, i) => (
+                        <div key={i} className="flex items-center gap-2 text-[12px]">
+                          <div className={`flex h-5 w-5 items-center justify-center rounded-full ${c.ok ? "bg-emerald-600/20 text-emerald-400" : "bg-red-600/20 text-red-400"}`}>
+                            {c.ok ? <CheckCircle2 className="h-3.5 w-3.5" /> : <XCircle className="h-3.5 w-3.5" />}
+                          </div>
+                          <span className={c.ok ? "text-zinc-300" : "text-zinc-500"}>{c.label}</span>
                         </div>
-                        <span className={c.ok ? "text-zinc-300" : "text-zinc-500"}>{c.label}</span>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
+                  </div>
+                  <div className="rounded-[12px] border border-zinc-800 bg-[#111119] p-4">
+                    <div className="mb-2 flex items-center gap-2 text-[12px] font-medium text-zinc-300">
+                      <Terminal className="h-4 w-4" /> Preview Log Mentah
+                    </div>
+                    <pre className="mono max-h-[160px] overflow-auto rounded bg-[#08080d] p-3 text-[11px] text-zinc-400">{analysisResult.rawContent.slice(0,800)}</pre>
                   </div>
                 </div>
               )}
@@ -546,9 +556,230 @@ export default function App() {
           </aside>
         </div>
       )}
-      {/* ... dosen & arsitektur tetap sama, dipersingkat untuk file fix */}
+
+      {role === "dosen" && (
+        <div className="mx-auto max-w-[1600px]">
+          <div className="grid grid-cols-12 gap-0">
+            {/* Sidebar Dosen */}
+            <aside className="col-span-12 border-b border-zinc-800 bg-[#0d0d12] lg:col-span-2 lg:border-b-0 lg:border-r">
+              <div className="p-5">
+                <h2 className="mb-4 text-[13px] font-semibold uppercase tracking-widest text-zinc-400">Menu Dosen</h2>
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2.5 rounded-[10px] bg-violet-600 px-3 py-2.5 text-[13px] font-medium text-white">
+                    <Box className="h-4 w-4" /> Dashboard
+                  </div>
+                  <div className="flex items-center gap-2.5 rounded-[10px] px-3 py-2.5 text-[13px] text-zinc-500 hover:bg-zinc-900 hover:text-zinc-300">
+                    <FileText className="h-4 w-4" /> Daftar Tugas
+                  </div>
+                  <div className="flex items-center gap-2.5 rounded-[10px] px-3 py-2.5 text-[13px] text-zinc-500 hover:bg-zinc-900 hover:text-zinc-300">
+                    <Zap className="h-4 w-4" /> Penilaian Otomatis
+                  </div>
+                  <div className="flex items-center gap-2.5 rounded-[10px] px-3 py-2.5 text-[13px] text-zinc-500 hover:bg-zinc-900 hover:text-zinc-300">
+                    <Users className="h-4 w-4" /> Daftar Mahasiswa
+                  </div>
+                  <div className="flex items-center gap-2.5 rounded-[10px] px-3 py-2.5 text-[13px] text-zinc-500 hover:bg-zinc-900 hover:text-zinc-300">
+                    <Terminal className="h-4 w-4" /> Log Sandbox
+                  </div>
+                </div>
+
+                <div className="mt-6 rounded-[12px] border border-zinc-800 bg-[#111119] p-4">
+                  <p className="text-[11px] uppercase tracking-widest text-zinc-500">Ringkasan Kelas</p>
+                  <div className="mt-3 space-y-2 text-[12px]">
+                    <div className="flex justify-between"><span className="text-zinc-500">Total Mhs</span><span className="font-medium">{mahasiswaMock.length}</span></div>
+                    <div className="flex justify-between"><span className="text-zinc-500">Lulus</span><span className="font-medium text-emerald-400">{totalBerhasil}</span></div>
+                    <div className="flex justify-between"><span className="text-zinc-500">Rata-rata</span><span className="font-medium">{avgScore}</span></div>
+                  </div>
+                </div>
+              </div>
+            </aside>
+
+            {/* Main Dosen Content */}
+            <div className="col-span-12 lg:col-span-10">
+              <div className="border-b border-zinc-800 bg-[#0a0a0f] p-5 lg:p-6">
+                <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                  <div>
+                    <h1 className="text-[22px] font-bold tracking-tight">Dashboard Dosen</h1>
+                    <p className="mt-1 text-[13px] text-zinc-400">Ringkasan aktivitas grading otomatis & submissions terbaru • {new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })} • {new Date().toLocaleTimeString('id-ID')} WIB</p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-600" />
+                      <input value={searchMahasiswa} onChange={(e)=>setSearchMahasiswa(e.target.value)} placeholder="Cari NIM / Nama..." className="w-[220px] rounded-full border border-zinc-800 bg-[#15151d] py-2 pl-9 pr-4 text-[13px] focus:border-violet-600 focus:outline-none" />
+                    </div>
+                    <button className="rounded-full border border-zinc-800 bg-[#15151d] px-4 py-2 text-[13px] font-medium hover:bg-zinc-800"><Download className="mr-1.5 inline h-4 w-4" /> Export CSV</button>
+                  </div>
+                </div>
+
+                {/* Stats Cards */}
+                <div className="mb-6 grid grid-cols-1 gap-3 md:grid-cols-3">
+                  <div className="rounded-[14px] border border-zinc-800 bg-[#111119] p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-[10px] bg-violet-600/20 text-violet-300"><FileText className="h-5 w-5" /></div>
+                      <div>
+                        <p className="text-[12px] text-zinc-500">Total Tugas</p>
+                        <p className="text-[26px] font-bold leading-none">{tugasList.length}</p>
+                      </div>
+                    </div>
+                    <p className="mt-2 text-[11px] text-zinc-500">+2 tugas minggu ini ↑</p>
+                  </div>
+                  <div className="rounded-[14px] border border-zinc-800 bg-[#111119] p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-[10px] bg-amber-500/15 text-amber-300"><Clock3 className="h-5 w-5" /></div>
+                      <div>
+                        <p className="text-[12px] text-zinc-500">Belum Dinilai</p>
+                        <p className="text-[26px] font-bold leading-none">{mahasiswaMock.filter(m=>m.status==='diantrekan' || m.status==='diproses').length}</p>
+                      </div>
+                    </div>
+                    <p className="mt-2 text-[11px] text-amber-400">Perlu ditinjau</p>
+                  </div>
+                  <div className="rounded-[14px] border border-zinc-800 bg-[#111119] p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-[10px] bg-violet-600/20 text-violet-300"><ShieldCheck className="h-5 w-5" /></div>
+                      <div>
+                        <p className="text-[12px] text-zinc-500">Rata-rata Nilai</p>
+                        <p className="text-[26px] font-bold leading-none">{avgScore}</p>
+                      </div>
+                    </div>
+                    <p className="mt-2 text-[11px] text-emerald-400">+4 dari minggu lalu</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-12 gap-4">
+                  {/* Table */}
+                  <div className="col-span-12 lg:col-span-7">
+                    <div className="rounded-[14px] border border-zinc-800 bg-[#111119]">
+                      <div className="flex items-center justify-between border-b border-zinc-800 p-4">
+                        <h3 className="text-[14px] font-semibold">Submissions Terbaru</h3>
+                        <span className="text-[12px] text-violet-400">Lihat Semua →</span>
+                      </div>
+                      <div className="overflow-auto">
+                        <table className="w-full">
+                          <thead>
+                            <tr className="border-b border-zinc-800 bg-[#0d0d12] text-left text-[11px] uppercase tracking-widest text-zinc-500">
+                              <th className="px-4 py-3 font-medium">Mahasiswa</th>
+                              <th className="px-4 py-3 font-medium">Tugas</th>
+                              <th className="px-4 py-3 font-medium">Status</th>
+                              <th className="px-4 py-3 font-medium">Nilai</th>
+                              <th className="px-4 py-3 font-medium">Aksi</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {filteredMahasiswa.map((m) => (
+                              <tr key={m.nim} onClick={()=>setSelectedMahasiswa(m)} className={`cursor-pointer border-b border-zinc-800/60 transition-colors hover:bg-violet-600/10 ${selectedMahasiswa?.nim===m.nim ? "bg-violet-600/10" : ""}`}>
+                                <td className="px-4 py-3">
+                                  <div className="flex items-center gap-2.5">
+                                    <div className="flex h-7 w-7 items-center justify-center rounded-full bg-zinc-800 text-[11px] font-bold">{m.nama.split(' ').map(s=>s[0]).slice(0,2).join('')}</div>
+                                    <div>
+                                      <p className="text-[13px] font-medium leading-none">{m.nama}</p>
+                                      <p className="mono mt-1 text-[11px] text-zinc-500">{m.nim}</p>
+                                    </div>
+                                  </div>
+                                </td>
+                                <td className="px-4 py-3 text-[12px] text-zinc-400">{m.tugas} • <span className="mono text-[11px]">{m.waktu}</span></td>
+                                <td className="px-4 py-3">
+                                  <span className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-medium ${m.status==='berhasil' ? "bg-emerald-500/15 text-emerald-300" : m.status==='gagal' ? "bg-red-500/15 text-red-300" : m.status==='diproses' ? "bg-amber-500/15 text-amber-300" : "bg-zinc-800 text-zinc-400"}`}>
+                                    <span className={`h-1.5 w-1.5 rounded-full ${m.status==='berhasil' ? "bg-emerald-400" : m.status==='gagal' ? "bg-red-400" : m.status==='diproses' ? "bg-amber-400 animate-pulse" : "bg-zinc-500"}`} />
+                                    {m.status}
+                                  </span>
+                                </td>
+                                <td className="px-4 py-3"><span className="text-[13px] font-bold">{m.skor >0 ? m.skor.toFixed(1) : "-"}</span></td>
+                                <td className="px-4 py-3"><button className="rounded-full border border-zinc-700 bg-zinc-900 px-3 py-1 text-[11px] font-medium hover:bg-zinc-800">Lihat</button></td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Detail panel */}
+                  <div className="col-span-12 lg:col-span-5">
+                    {selectedMahasiswa ? (
+                      <div className="rounded-[14px] border border-zinc-800 bg-[#111119]">
+                        <div className="border-b border-zinc-800 p-4">
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <h3 className="text-[14px] font-semibold">{selectedMahasiswa.nama} • {selectedMahasiswa.nim}</h3>
+                              <p className="mono mt-1 text-[11px] text-zinc-500">{selectedMahasiswa.file_path}</p>
+                            </div>
+                            <span className={`rounded-full px-2.5 py-1 text-[12px] font-bold ${selectedMahasiswa.status==='berhasil' ? "bg-emerald-600 text-white" : selectedMahasiswa.status==='gagal' ? "bg-red-600 text-white" : "bg-zinc-700 text-zinc-300"}`}>{selectedMahasiswa.skor}</span>
+                          </div>
+                        </div>
+                        <div className="p-4">
+                          <div className="mb-3 flex items-center gap-2 text-[12px] font-medium text-zinc-300"><Terminal className="h-4 w-4" /> Log Grading</div>
+                          <div className="mb-4 rounded-[10px] bg-[#08080d] p-3 mono text-[11px] text-zinc-400">{selectedMahasiswa.log}</div>
+
+                          <div className="mb-2 flex items-center gap-2 text-[12px] font-medium text-zinc-300"><FileCode2 className="h-4 w-4" /> grading_engine.py</div>
+                          <div className="rounded-[10px] border border-zinc-800 bg-[#0a0a0f]">
+                            <div className="flex items-center gap-2 border-b border-zinc-800 px-3 py-2">
+                              <div className="h-2.5 w-2.5 rounded-full bg-red-500" /><div className="h-2.5 w-2.5 rounded-full bg-amber-400" /><div className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
+                              <span className="ml-2 mono text-[11px] text-zinc-500">submission preview</span>
+                              <span className="ml-auto rounded bg-zinc-800 px-1.5 py-0.5 text-[10px] text-zinc-400">HTML</span>
+                            </div>
+                            <pre className="max-h-[280px] overflow-auto p-3 mono text-[11px] leading-relaxed text-zinc-300">{selectedMahasiswa.code.slice(0,1200)}</pre>
+                            <div className="flex items-center justify-between border-t border-zinc-800 px-3 py-2">
+                              <span className="mono text-[10px] text-zinc-600">Lines: {selectedMahasiswa.code.split('\n').length} • UTF-8 • HTML 5</span>
+                              <div className="flex gap-1.5">
+                                <button className="rounded-full bg-violet-600 px-3 py-1 text-[11px] font-medium text-white">▶ Run Test</button>
+                                <button className="rounded-full border border-zinc-700 bg-zinc-900 px-3 py-1 text-[11px]">Logs</button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="rounded-[14px] border border-dashed border-zinc-800 bg-[#111119] p-10 text-center text-[13px] text-zinc-500">Pilih mahasiswa untuk melihat detail</div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {role === "arsitektur" && (
+        <div className="mx-auto max-w-[1600px] p-6">
+          <h1 className="text-[22px] font-bold">Arsitektur Sistem JAKA.LMS</h1>
+          <p className="mt-1 text-[13px] text-zinc-400">Sandbox Docker • Queue • Grading Engine • Storage</p>
+          
+          <div className="mt-6 grid grid-cols-12 gap-4">
+            {[
+              { icon: UploadCloud, title: "Frontend (React + Vite)", desc: "Upload .zip / GitHub URL, progress pipeline real-time, Report Card.", tech: "Vite, Tailwind, lucide-react" },
+              { icon: Layers, title: "API Gateway :3001", desc: "Endpoint /api/submit menerima FormData, simpan ke /storage, push ke queue.", tech: "Express, Multer" },
+              { icon: Cpu, title: "Docker Sandbox Workers (x3)", desc: "Container terisolasi node:20-alpine, menjalankan Puppeteer untuk uji fungsional slider.", tech: "Docker, Puppeteer, BullMQ" },
+              { icon: Database, title: "Grading Engine", desc: "Static analysis (range, onchange, Enak Banget) + functional test (slider.value=9.5)", tech: "HTMLHint, ESLint" },
+              { icon: HardDrive, title: "Storage / MinIO", desc: "File path /storage/tugas{id}/{nim}.zip, log disimpan untuk Dosen.", tech: "Local FS / S3" },
+              { icon: ShieldCheck, title: "Security & Isolation", desc: "Setiap submission jalan di container ephemeral, timeout 30s, network none.", tech: "Docker --network none" },
+            ].map((a,i)=>(
+              <div key={i} className="col-span-12 md:col-span-6 lg:col-span-4 rounded-[14px] border border-zinc-800 bg-[#111119] p-5">
+                <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-[10px] bg-violet-600/15 text-violet-300"><a.icon className="h-5 w-5" /></div>
+                <h3 className="text-[14px] font-semibold">{a.title}</h3>
+                <p className="mt-1 text-[12px] leading-relaxed text-zinc-400">{a.desc}</p>
+                <p className="mono mt-3 rounded bg-[#08080d] px-2 py-1 text-[10px] text-zinc-500">{a.tech}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-6 rounded-[14px] border border-zinc-800 bg-[#0a0a0f] p-5">
+            <div className="mb-3 flex items-center gap-2 text-[13px] font-semibold"><GitBranch className="h-4 w-4 text-violet-400" /> Alur Data (End-to-End)</div>
+            <pre className="mono overflow-auto text-[11px] leading-relaxed text-zinc-400">{`Mahasiswa -> Upload ZIP/HTML 
+   -> POST /api/submit (FormData file, taskId, githubUrl)
+   -> API simpan file ke /storage/tugas{taskId}/{nim}.zip
+   -> Push job ke queue (BullMQ / memory)
+   -> Worker ambil job: docker run --rm -v /tmp:/tmp jaka-sandbox
+        1) Ekstraksi & Static Check (HTMLHint, cek <input type=range>)
+        2) Puppeteer: buka file HTML, slider.value=9.5, dispatchEvent('input'), baca label
+        3) Skor = 70% fungsional + 30% sintaks, cek "Enak Banget"
+   -> Simpan hasil {score, status, logs, details} ke DB / JSON
+   -> Frontend polling / websocket update Pipeline Stage 1-3
+   -> Dosen lihat di Dashboard: submissions terbaru, log, code preview`}</pre>
+          </div>
+        </div>
+      )}
+
       <footer className="border-t border-zinc-800/60 py-6 text-center">
-        <p className="mono text-[11px] text-zinc-600">JAKA.LMS • Automated Grading Portal • Dibuat untuk Master Jaka • © 2024</p>
+        <p className="mono text-[11px] text-zinc-600">JAKA.LMS • Automated Grading Portal • Dibuat untuk Master Jaka • © 2024 • Frontend: :5173 • API: :3001 • Mode: {role}</p>
       </footer>
     </div>
   );
