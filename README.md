@@ -58,3 +58,16 @@ Upload file HTML yang mengandung:
 </script>
 ```
 Sistem harus PASS dengan skor 9.5.
+
+
+## 🚀 Live Demo (GitHub Pages)
+Setelah merge versi 2 ini, aktifkan Pages di Settings > Pages > Source: GitHub Actions.
+Lalu LMS akan live di: https://1stdragons.github.io/LMS-TugasMahasiswa/
+
+## 🐳 Jalankan dengan Docker
+```bash
+docker compose up --build
+# Frontend: http://localhost:5173
+# Backend: http://localhost:3001
+# MinIO Console: http://localhost:9001 (minioadmin/minioadmin)
+```
